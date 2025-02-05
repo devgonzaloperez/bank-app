@@ -1,0 +1,70 @@
+server:
+  port: 9000
+spring:
+  application:
+      name: "cards"
+  profiles:
+      active: "prod" #O qa o default.
+  config:
+      import: "optional:configserver:http://localhost:8071/"
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  output:
+    ansi:
+      enabled: ALWAYS
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+    dateformat: dd-MM-yyyy HH:mm:ss
+  level:
+    com:
+      eazybytes:
+        cards: DEBUG
+  include-application-name: false
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka
+info: #Information for Eureka dashboard.
+  app: 
+    name: "accounts"
+    description: "Eazy Bank Accounts Application"
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+

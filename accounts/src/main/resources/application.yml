@@ -1,0 +1,114 @@
+server:
+  port: 8080
+spring:
+  cloud:
+    function:
+      definition: updateCommunication #Define la función principal que se utilizará en el flujo de procesamiento; en este caso, "updateCommunication" se refiere a una función que se ejecutará cuando se reciba un mensaje en el canal de entrada.
+    stream:
+      bindings:
+        sendCommunication-out-0:
+          destination: send-communication #Definición del canal de salida. Significa que al publicar un mensaje en este canal, el mensaje será enviado al destino "send-communication", que puede ser un tópico en Kafka o una cola en RabbitMQ, permitiendo que otros servicios o componentes que escuchen en ese destino reciban el mensaje resultante después de ser procesado.
+        updateCommunication-in-0: #Definición del canal de entrada. Indica que este canal escuchará mensajes provenientes del destino "communication-sent"; cada vez que un mensaje llegue a este destino, se activará la función "updateCommunication" para procesarlo.
+          destination: communication-sent #Especifica el destino desde el cual este canal recibirá los mensajes; en este caso, se trata de un tópico en Kafka o una cola en RabbitMQ llamado "communication-sent".
+    openfeign:
+      circuitbreaker:
+        enabled: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    connection-timeout: 10s
+  application:
+    name: "accounts"
+  profiles:
+    active: "prod"
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  output:
+    ansi:
+      enabled: ALWAYS
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+    dateformat: dd-MM-yyyy HH:mm:ss
+  include-application-name: false
+  level:
+    com:
+      eazybytes:
+        accounts: DEBUG
+
+eureka:
+  instance:
+    preferIpAddress: true
+  client:
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka
+    
+info: #Information for Eureka dashboard.
+  app: 
+    name: "accounts"
+    description: "Eazy Bank Accounts Application"
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  info:
+    env:
+      enabled: true
+
+resilience4j.circuitbreaker:
+  configs:
+    default: 
+      slidingWindowSize: 10 #Número de llamadas que se evaluarán para determinar la tasa de fallos. Si hay 9 llamadas y todas fallan, no aparecerá en OPEN ya que la evaluación se considera realizada al llegar a 10.
+      permittedNumberOfCallsInHalfOpenState: 2 #Número de llamadas permitidas en estado "Half-Open" antes de decidir si reabrir o cerrar el Circuit Breaker.
+      failureRateThreshold: 50 #Porcentaje máximo de fallos permitidos antes de que el Circuit Breaker cambie a estado "Open".
+      waitDurationInOpenState: 10000 #Tiempo (en milisegundos) que el Circuit Breaker permanece en estado "Open" antes de pasar a "Half-Open".
+
+resilience4j.retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration: 100
+        enable-exponential-backoff: true
+        exponential-backoff-multiplier: 2
+        ignore-exceptions:
+          - java.lang.NullPointerException
+
+resilience4j.ratelimiter:
+  configs:
+    default:
+      timeout-duration: 1000
+      limit-refresh-period: 5000 #Renovar cuota cada 5 segundos.
+      limit-for-period: 1 #Cantidad de requests permitidas dentro de cada limit-refresh-period. En este caso, una cada 5 segundos.
+      
