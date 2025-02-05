@@ -1,0 +1,31 @@
+server:
+  port: 9010 
+spring:
+  application:
+    name: message 
+  cloud:
+    function:
+      definition: email|sms  #Define las funciones que Spring Cloud Stream debe utilizar. "email|sms" combina ambas funciones ("email" y "sms") en un flujo secuencial, permitiendo que se traten como una sola unidad de código (pipeline).
+    stream:
+      bindings:
+        emailsms-in-0:
+          destination: send-communication #Definición del canal de entrada. Significa que se ejecutará email|sms cuando entre un mensaje al tópico (o cola) llamado send-communication.
+          group: ${spring.application.name}  #Define el grupo de consumidores para el canal de entrada.
+        emailsms-out-0:
+          destination: communication-sent #Definición del canal de salida. Significa que, después de que email|sms se hayan ejecutado, el resultado se publicará en el tópico (o cola) llamado communication-sent.
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    connection-timeout: 10s
+  output:
+    ansi:
+      enabled: ALWAYS
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+    dateformat: dd-MM-yyyy HH:mm:ss
+  include-application-name: false
+
+#En Spring Cloud Stream, el sufijo -out-0 es una convención utilizada para identificar canales de salida (output bindings) de las funciones, mientras que -in-0 se utiliza para los canales de entrada (input bindings). Estos sufijos permiten a Spring Cloud Stream asociar las funciones de entrada y salida de manera automática, siguiendo el modelo de programación reactiva.

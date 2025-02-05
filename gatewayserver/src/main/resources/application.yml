@@ -1,0 +1,69 @@
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: "http://localhost:7080/realms/master/protocol/openid-connect/certs" #Download public certificate from Keycloak to check if an access token is valid.
+  data:
+    redis:
+      connect-timeout: 2s
+      host: localhost
+      port: 6379
+      timeout: 1s
+  cloud:
+    gateway:
+      httpclient:
+        connect-timeout: 1000
+        response-timeout: 10s
+      discovery:
+        locator:
+          enabled: true #Connect gateway to discovery server and search active microservices.
+          lowerCaseServiceId: true
+  application:
+    name: "gatewayserver"
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+  output:
+    ansi:
+      enabled: ALWAYS
+  h2:
+    console:
+      enabled: true
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+    dateformat: dd-MM-yyyy HH:mm:ss
+  level:
+    com:
+      eazybytes:
+        gatewayserver: DEBUG
+  include-application-name: false
+
+info: #Information for Eureka dashboard.
+  app: 
+    name: "gatewayserver"
+    description: "Eazy Bank Gateway Server Application"
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoints:
+    web:
+      exposure:
+        include: "*"  
+  endpoint:
+    gateway:
+      enabled: true
+  info:
+    env:
+      enabled: true
+
+resilience4j.circuitbreaker:
+  configs:
+    default: 
+      slidingWindowSize: 10 #Número de llamadas que se evaluarán para determinar la tasa de fallos. Si hay 9 llamadas y todas fallan, no aparecerá en OPEN ya que la evaluación se considera realizada al llegar a 10.
+      permittedNumberOfCallsInHalfOpenState: 2 #Número de llamadas permitidas en estado "Half-Open" antes de decidir si reabrir o cerrar el Circuit Breaker.
+      failureRateThreshold: 50 #Porcentaje máximo de fallos permitidos antes de que el Circuit Breaker cambie a estado "Open".
+      waitDurationInOpenState: 10000 #Tiempo (en milisegundos) que el Circuit Breaker permanece en estado "Open" antes de pasar a "Half-Open".
+
+
