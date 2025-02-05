@@ -1,0 +1,11 @@
+server:
+  port: 8070
+
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    fetchRegistry: false  #Indica que este cliente no descargará el registro de Eureka. Esto se usa cuando no necesitas saber qué servicios están registrados en Eureka. Cuando no se utiliza fetchRegistry, el cliente de Eureka no descarga localmente el registro de servicios disponibles en el servidor de Eureka. Sin embargo, si este valor no está presente o está configurado como true, el cliente lo descarga para poder localizar otros servicios que están registrados en Eureka y que podrían necesitarse para llamadas entre microservicios. Cuando el cliente no tiene fetchRegistry: true, aún puede registrar su propia instancia en el servidor de Eureka si la configuración registerWithEureka: true está activada. El cliente únicamente registrará su propio estado en el servidor de Eureka, pero no descargará información sobre otros servicios registrados. Si el cliente necesita llamar a otros servicios, pero no descarga el registro local, debería usar otras formas de descubrimiento de servicios o configurar manualmente las URLs de los servicios con los que necesita interactuar.
+    registerWithEureka: false #Especifica que esta instancia no se registrará en el servidor Eureka. Útil cuando el servidor de Eureka no debe registrarse en sí mismo.
+    serviceUrl:
+      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/

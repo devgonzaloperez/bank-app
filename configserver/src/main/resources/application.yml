@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: configserver
+  profiles:
+    #a) Seleccionar la carpeta resources o un archivo de nuestra pc (file system) como fuente de configuración.
+    #active: native
+    #b) Seleccionar GitHub como fuente de configuración.
+    active: git
+  cloud:
+    config:
+      server: 
+        #native: 
+          #a) Elegir la carpeta resources como fuente de configuración.
+          #search-locations: "classpath:/config"
+          #b) Elegir una ruta de nuestra pc como fuente de configuración.
+          #search-locations: "file:///C://Users/gonzalo.perez/Desktop/config" #From File System.
+        #c) Elegir GitHub como fuente de configuración.
+        git:
+          uri: https://github.com/eazybytes/eazybytes-config.git
+          default-label: main #Branch.
+          timeout: 5 #5 seconds.
+          clone-on-start: true #Clone GitHub repo in local system.
+          force-pull: true
+  output:
+    ansi:
+      enabled: ALWAYS
+encrypt: 
+  key: 45D81EC1EF61DF9AD8D3E5BB397F9
+server:
+  port: 8071
+
+management:
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
+    
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+    dateformat: dd-MM-yyyy HH:mm:ss
+  include-application-name: false
+
+

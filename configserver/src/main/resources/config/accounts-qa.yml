@@ -1,0 +1,11 @@
+build:
+  version: "2.0 (QA Profile) from Config Server (Resources Classpath)"
+
+accounts:
+  message: "Welcome to EazyBank accounts related QA APIs"
+  contactDetails:
+    name: "Ray Smith - QA Lead"
+    email: "ray@eazybank.com"
+  onCallSupport:
+    - (666) 265-3765
+    - (666) 555-8371
